@@ -927,12 +927,12 @@
                 mock("/demo", "<div>Foo</div>");
                 let swapped = false;
                 let evtListener = (e)=>{
-									console.log('here!', e)
-				  swapped = true;
+                  console.log('here!', e)
+                  swapped = true;
                 }
-				document.addEventListener("fx:swapped", evtListener)
+                document.addEventListener("fx:swapped", evtListener)
                 find('button').click();
-                await sleep(10);
+                await sleep(500);
                 document.removeEventListener("fx:swapped", evtListener)
                 assertEq(swapped, true);
               })
