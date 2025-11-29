@@ -113,6 +113,7 @@
 			const swap = () => {
 				document.title = doc.title;
 				document.body.innerHTML = doc.body.innerHTML;
+				window.scrollTo(0, 0);
 			};
 			document.startViewTransition ? await document.startViewTransition(swap).finished : swap();
 			if (!options || options.method === 'GET') {
