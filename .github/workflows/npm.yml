@@ -28,21 +28,22 @@ jobs:
         run: |
           cat > package.json <<EOF
           {
-            "name": "fixi-js",
+            "name": "boosti-js",
             "version": "${{ steps.get_version.outputs.VERSION }}",
-            "description": "fixi.js - A Small Generalized Hypermedia Controls Tool",
-            "main": "fixi.js",
+            "description": "boosti.js - Carson Gross' fixi.js plus boost links",
+            "main": "boosti.js",
             "files": [
-              "fixi.js",
+              "boosti.js",
               "README.md"
             ],
             "repository": {
               "type": "git",
-              "url": "https://github.com/bigskysoftware/fixi.git"
+              "url": "https://github.com/JensRoland/boosti.git"
             },
             "author": "1cg",
             "license": "BSD-0",
             "keywords": [
+              "boosti",
               "fixi",
               "htmx",
               "hypermedia",
@@ -50,7 +51,7 @@ jobs:
               "html"
             ],
             "bugs": {
-              "url": "https://github.com/bigskysoftware/fixi/issues"
+              "url": "https://github.com/JensRoland/boosti/issues"
             }
           }
           EOF
