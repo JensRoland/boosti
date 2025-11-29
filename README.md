@@ -40,7 +40,7 @@ Finally, boosti.js adds three extra attributes to the fixi.js API to support com
 
 ## Minimalism
 
-The current uncompressed size is `3292` bytes, the gzipped size is `1398` bytes and the brotli'd size is `1181` bytes,
+The current uncompressed size is `5426` bytes, the gzipped size is `2117` bytes and the brotli'd size is `1807` bytes,
 as determined by:
 
 ```bash

@@ -1,25 +1,3 @@
-/**
- * boosti.js - A fork of fixi.js with boost, confirm, and reset extensions
- * 
- * By Jens Roland (https://github.com/JensRoland/boosti)
- *
- * Based on fixi.js by Carson Gross (https://github.com/bigskysoftware/fixi)
- * Extended with:
- *   - fx-boost: SPA-like navigation for links and forms
- *   - fx-confirm: Confirmation dialogs before requests
- *   - fx-reset: Reset forms after successful submission
- *
- * Attributes:
- *   fx-action   - URL endpoint for the request (required for AJAX)
- *   fx-method   - HTTP method (default: GET)
- *   fx-target   - CSS selector for swap target (default: current element)
- *   fx-swap     - Swap mode: outerHTML, innerHTML, beforebegin, afterbegin, beforeend, afterend, none
- *   fx-trigger  - Event to trigger request (default: submit for forms, change for inputs, click otherwise)
- *   fx-confirm  - Show confirmation dialog with this message before request
- *   fx-reset    - Reset form after successful request
- *   fx-boost    - Set to "false" to disable boost for element and descendants
- *   fx-ignore   - Ignore fixi processing for element and descendants
- */
 (()=>{
 	if(document.__boosti) return;
 	document.__boosti = true;
