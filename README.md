@@ -2,7 +2,7 @@
 
 ![assets/boosti-serene.avif](assets/boosti-serene.avif)
 
-[fixi.js](https://github.com/bigskysoftware/fixi) is Garson Gross' experimental, minimalist implementation of a subset of [htmx](https://htmx.org/). boosti.js is a fork of fixi.js that adds support for 'boosted' links and form submissions, as well as some other small yet important features which weren't included in the original fixi.js.
+[fixi.js](https://github.com/bigskysoftware/fixi) is Garson Gross' experimental, minimalist implementation of a subset of [htmx](https://htmx.org/). [boosti.js](https://github.com/JensRoland/boosti) is a fork of fixi.js that adds support for 'boosted' links and form submissions, as well as some other small yet important features which weren't included in the original fixi.js.
 
 If you aren't familiar with HTMX, fixi.js, or boosted links, you are *likely lost*, and I can only recommend you read Carson Gross' excellent [htmx documentation](https://htmx.org/docs/), as well as the [blog post introducing fixi.js](https://htmx.org/essays/the-fetchening/).
 
@@ -46,12 +46,13 @@ Finally, boosti.js adds several extra attributes and features to the fixi.js API
 
 ![assets/zen-stones.avif](assets/zen-stones.avif)
 
-The current uncompressed size is `7736` bytes, the gzipped size is `2915` bytes and the brotli'd size is `2531` bytes,
-as determined by:
+The current uncompressed size is `7736` bytes, the gzipped size is `2915` bytes and the brotli'd size is `2531` bytes, as determined by:
 
 ```bash
 ls -l boosti.js | awk  '{print "raw:", $5}'; gzip -k boosti.js; ls -l boosti.js.gz | awk  '{print "gzipped:", $5}'; rm boosti.js.gz; brotli boosti.js; ls -l boosti.js.br | awk  '{print "brotlid:", $5}'; rm boosti.js.br
 ```
+
+Is that a lot? Well, boosti is a replacement for all the core parts of htmx, which as of December 2025 is `51,250` bytes minified, `16,615` bytes gzipped, and `15,003` bytes brotli'd. So in comparison boosti is tiny.
 
 As its predecessor, boosti has very few moving parts:
 
