@@ -1,6 +1,14 @@
 (()=>{
-	if(document.__boosti) return;
-	document.__boosti = true;
+	if(document.__yolomode) return;
+	document.__yolomode = true;
+
+	// === YOLO MODE: Check if preloading should be enabled ===
+	const supportsPrefetch = document.createElement('link').relList?.supports('prefetch');
+	const isSmallScreen = document.documentElement.clientWidth * document.documentElement.clientHeight < 450000;
+	const conn = navigator.connection;
+	const isSaveData = conn?.saveData;
+	const isSlow = conn?.effectiveType?.includes('2g');
+	const yoloEnabled = supportsPrefetch && !(isSmallScreen && (isSaveData || isSlow));
 
 	// === FIXI CORE ===
 	let defined = document.__fixi_mo;
@@ -216,6 +224,62 @@
 
 	// Handle back/forward
 	window.addEventListener('popstate', () => boost(location.href, { method: 'GET' }));
+
+	// === YOLO MODE: Preloading with fx-yolo / fx-yolo-images ===
+	function prefetch(url) {
+		const link = document.createElement('link');
+		link.rel = 'prefetch';
+		link.href = url;
+		document.head.appendChild(link);
+		console.log("🏄‍♂️ yoloed ", url);
+	}
+
+	function preloadImages(url) {
+		fetch(url).then(r => r.text()).then(html => {
+			const doc = new DOMParser().parseFromString(html, 'text/html');
+			doc.querySelectorAll('img[src]').forEach(img => new Image().src = img.src);
+			console.log("🏄 yoloed 🌅 ", url);
+		}).catch(() => {});
+	}
+
+	function startPreload(elt) {
+		if (elt.__yolo_preloaded) return;
+		elt.__yolo_preloaded = true;
+		const method = attr(elt, "fx-method", "GET").toUpperCase();
+		if (method !== 'GET') return;
+		const url = attr(elt, "fx-action");
+		if (!url) return;
+		console.log("🏄‍♂️ yolo! --> ", url);
+		prefetch(url);
+		if (elt.hasAttribute('fx-yolo-images')) {
+			preloadImages(url);
+		}
+	}
+
+	if (yoloEnabled) {
+		let hoverTimer = null;
+		let currentElt = null;
+
+		document.addEventListener('mouseenter', (e) => {
+			const elt = e.target.closest('[fx-action][fx-yolo], [fx-action][fx-yolo-images]');
+			if (!elt || elt.__yolo_preloaded) return;
+			currentElt = elt;
+			hoverTimer = setTimeout(() => startPreload(elt), 65);
+		}, true);
+
+		document.addEventListener('mouseleave', (e) => {
+			const elt = e.target.closest('[fx-action][fx-yolo], [fx-action][fx-yolo-images]');
+			if (elt === currentElt) {
+				clearTimeout(hoverTimer);
+				currentElt = null;
+			}
+		}, true);
+
+		document.addEventListener('touchstart', (e) => {
+			const elt = e.target.closest('[fx-action][fx-yolo], [fx-action][fx-yolo-images]');
+			if (elt) startPreload(elt);
+		}, {passive: true});
+	}
 
 	// Initialize on DOMContentLoaded
 	document.addEventListener("DOMContentLoaded", ()=>{

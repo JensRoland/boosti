@@ -921,13 +921,176 @@
         </div>
 
         <div class="test">
+            <h3>Test delay modifier delays the request</h3>
+            <script>
+              test(async ()=>{
+                mock("/demo", "<div>Foo</div>");
+                let triggered = false;
+                find('button').addEventListener('fx:before', () => {
+                  triggered = true;
+                })
+                find('button').click();
+                await sleep(30);
+                assertEq(triggered, false); // not yet triggered
+                await sleep(80);
+                assertEq(triggered, true); // now triggered after delay
+              })
+            </script>
+            <button fx-action="/demo" fx-trigger="click delay:50ms">
+                Button 1
+            </button>
+        </div>
+
+        <div class="test">
+            <h3>Test delay modifier debounces rapid clicks</h3>
+            <script>
+              test(async ()=>{
+                let i = 0;
+                mock("/demo", ()=>`<div>Foo${++i}</div>`);
+                find('button').click();
+                await sleep(20);
+                find('button').click(); // resets the delay
+                await sleep(20);
+                find('button').click(); // resets again
+                await sleep(100);
+                assertEq(find('div')?.innerText, "Foo1"); // only one request
+              })
+            </script>
+            <button fx-action="/demo" fx-trigger="click delay:50ms">
+                Button 1
+            </button>
+        </div>
+
+        <div class="test">
+            <h3>Test changed modifier only fires when value changes</h3>
+            <script>
+              test(async ()=>{
+                let requestCount = 0;
+                mock("/demo", ()=>`<div>Foo${++requestCount}</div>`);
+                find('input').dispatchEvent(new Event('input', {bubbles: true}));
+                await sleep(50);
+                assertEq(requestCount, 0); // no change, no request
+                find('input').value = "new value";
+                find('input').dispatchEvent(new Event('input', {bubbles: true}));
+                await sleep(50);
+                assertEq(requestCount, 1); // changed, request fired
+                find('input').dispatchEvent(new Event('input', {bubbles: true}));
+                await sleep(50);
+                assertEq(requestCount, 1); // same value, no new request
+              })
+            </script>
+            <input fx-action="/demo" fx-trigger="input changed" fx-swap="afterend" value="">
+        </div>
+
+        <div class="test">
+            <h3>Test throttle modifier limits request rate</h3>
+            <script>
+              test(async ()=>{
+                let requestCount = 0;
+                mock("/demo", ()=>`<div>Foo${++requestCount}</div>`);
+                find('button').click();
+                find('button').click();
+                find('button').click();
+                await sleep(50);
+                assertEq(requestCount, 1); // only first fires immediately
+                await sleep(150);
+                assertEq(requestCount, 2); // one more after throttle period
+              })
+            </script>
+            <button fx-action="/demo" fx-trigger="click throttle:100ms" fx-swap="afterend">
+                Button 1
+            </button>
+        </div>
+
+        <div class="test">
+            <h3>Test once modifier fires only once</h3>
+            <script>
+              test(async ()=>{
+                let requestCount = 0;
+                mock("/demo", ()=>`<span>Foo${++requestCount}</span>`);
+                find('button').click();
+                await sleep(50);
+                assertEq(requestCount, 1);
+                find('button').click();
+                await sleep(50);
+                assertEq(requestCount, 1); // still 1, once prevents second
+              })
+            </script>
+            <button fx-action="/demo" fx-trigger="click once" fx-swap="afterend">
+                Button 1
+            </button>
+        </div>
+
+        <div class="test">
+            <h3>Test multiple triggers with comma separator</h3>
+            <script>
+              test(async ()=>{
+                let requestCount = 0;
+                mock("/demo", ()=>`<span>Foo${++requestCount}</span>`);
+                find('button').click();
+                await sleep(50);
+                assertEq(requestCount, 1);
+                find('button').dispatchEvent(new Event('mouseenter'));
+                await sleep(50);
+                assertEq(requestCount, 2);
+              })
+            </script>
+            <button fx-action="/demo" fx-trigger="click, mouseenter" fx-swap="afterend">
+                Button 1
+            </button>
+        </div>
+
+        <div class="test">
+            <h3>Test combined modifiers: changed delay</h3>
+            <script>
+              test(async ()=>{
+                let requestCount = 0;
+                mock("/demo", ()=>`<div>Foo${++requestCount}</div>`);
+                find('input').value = "a";
+                find('input').dispatchEvent(new Event('input', {bubbles: true}));
+                await sleep(20);
+                find('input').value = "ab";
+                find('input').dispatchEvent(new Event('input', {bubbles: true}));
+                await sleep(20);
+                find('input').value = "abc";
+                find('input').dispatchEvent(new Event('input', {bubbles: true}));
+                await sleep(100);
+                assertEq(requestCount, 1); // debounced to single request
+              })
+            </script>
+            <input fx-action="/demo" fx-trigger="input changed delay:50ms" fx-swap="afterend" value="">
+        </div>
+
+        <div class="test">
+            <h3>Test multiple triggers with different modifiers</h3>
+            <script>
+              test(async ()=>{
+                let requestCount = 0;
+                mock("/demo", ()=>`<span>Foo${++requestCount}</span>`);
+                // custom event fires immediately
+                find('button').dispatchEvent(new CustomEvent('search'));
+                await sleep(50);
+                assertEq(requestCount, 1);
+                // click is delayed
+                find('button').click();
+                await sleep(20);
+                assertEq(requestCount, 1); // not yet
+                await sleep(80);
+                assertEq(requestCount, 2); // now fired
+              })
+            </script>
+            <button fx-action="/demo" fx-trigger="click delay:50ms, search" fx-swap="afterend">
+                Button 1
+            </button>
+        </div>
+
+        <div class="test">
             <h3>Test fx:swapped is triggered on doc even if element replaces itself</h3>
             <script>
               test(async ()=>{
                 mock("/demo", "<div>Foo</div>");
                 let swapped = false;
                 let evtListener = (e)=>{
-                  console.log('here!', e)
                   swapped = true;
                 }
                 document.addEventListener("fx:swapped", evtListener)
@@ -942,6 +1105,72 @@
                     Button 1
                 </button>
             </div>
+        </div>
+
+        <div class="test">
+            <h3>Test intersect trigger fires when element becomes visible</h3>
+            <script>
+              test(async ()=>{
+                let beforeFired = false;
+                mock("/demo", `<div>Loaded</div>`);
+                // Listen for fx:before on the container to catch dynamically added element
+                currentTest.testElt.addEventListener('fx:before', ()=>{ beforeFired = true; });
+                // Add element dynamically so mock is set up first
+                currentTest.testElt.insertAdjacentHTML('beforeend',
+                  `<div fx-action="/demo" fx-trigger="intersect once" fx-swap="innerHTML" style="height:10px;">Loading...</div>`);
+                let addedElt = currentTest.testElt.querySelector('[fx-trigger="intersect once"]');
+                // Manually trigger processing since MutationObserver may not have fired yet
+                addedElt.dispatchEvent(new CustomEvent('fx:process', {bubbles: true}));
+                await sleep(50);
+                // Scroll element into view AFTER initialization to trigger IntersectionObserver
+                addedElt.scrollIntoView();
+                await sleep(300);
+                assertEq(beforeFired, true);
+              })
+            </script>
+        </div>
+
+        <div class="test">
+            <h3>Test fx-indicator adds class during request</h3>
+            <script>
+              test(async ()=>{
+                mock("/demo", `<div>Done</div>`);
+                let hadClassDuringRequest = false;
+                let indicator = find('[data-indicator-test]');
+                find('button').addEventListener('fx:before', ()=>{
+                  // Check indicator has class at fx:before time (after it's added, before fetch)
+                  hadClassDuringRequest = indicator.classList.contains('fx-request');
+                });
+                find('button').click();
+                await sleep(50);
+                // Verify class was present during request
+                assertEq(hadClassDuringRequest, true);
+                // After request completes, class should be removed
+                assertEq(indicator.classList.contains('fx-request'), false);
+              })
+            </script>
+            <button fx-action="/demo" fx-indicator="[data-indicator-test]" fx-swap="afterend">
+                Load
+            </button>
+            <span data-indicator-test>Loading...</span>
+        </div>
+
+        <div class="test">
+            <h3>Test fx-indicator removes class after request</h3>
+            <script>
+              test(async ()=>{
+                mock("/demo", `<div>Done</div>`);
+                let indicator = find('[data-indicator-test2]');
+                find('button').click();
+                await sleep(50);
+                // After request completes, class should be removed
+                assertEq(indicator.classList.contains('fx-request'), false);
+              })
+            </script>
+            <button fx-action="/demo" fx-indicator="[data-indicator-test2]" fx-swap="afterend">
+                Load
+            </button>
+            <span data-indicator-test2>Loading...</span>
         </div>
 
     </section>
