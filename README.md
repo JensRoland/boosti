@@ -250,24 +250,24 @@ Wouldn't it be nice if there was one way to do all of that, and that way actuall
 
 * ❌ Prefetch via the Speculation Rules API? Supported in Chrome and Edge only, and in practice doesn't even seem to work in Chrome. No idea why, not worth wasting any more time on it.
 * ✅ Prefetch via fetch()? Solid, simple, reliable. Why are we trying these other things again?
-* ❌ <link rel="prefetch">? Doesn't work for boosted links, and it's not supported in Safari.
-* ❌ <link rel="preload" as="fetch">? Ironically prefetches as `document`, not `fetch`, so doesn't work for boosted links.
+* ❌ `<link rel="prefetch">`? Doesn't work for boosted links, and it's not supported in Safari.
+* ❌ `<link rel="preload" as="fetch">`? Ironically prefetches as `document`, not `fetch`, so doesn't work for boosted links.
 
 **Prefetching strategies (document, for fx-action):**
 
 * ❌ Prefetch via the Speculation Rules API? Again, should work, but doesn't.
 * ❌ Prefetch via fetch()? Boosted links only -- *next!*
-* ⚠️ <link rel="prefetch">? Not supported in Safari. Fucking Steve Jobs.
-* ⚠️ <link rel="preload" as="fetch">? Prefetches HTML as document in Chrome, but not sure if all browsers agree; wouldn't bet on it.
+* ⚠️ `<link rel="prefetch">`? Not supported in Safari. Fucking Steve Jobs.
+* ⚠️ `<link rel="preload" as="fetch">`? Prefetches HTML as document in Chrome, but not sure if all browsers agree; wouldn't bet on it.
 
 **Prerendering assets strategies:**
 
 * ⚠️ Prerender via the Speculation Rules API? Great, simple, does everything (even caches the HTML for *both* `document` *and* `fetch`)... but it's only supported in Chrome and Edge.
-* ❌ <link rel="prerender">? Not supported in Safari or Firefox, and even Chrome seems to have given up on it.
-* ✅ Stick the URL inside a sandboxed <iframe> offscreen? Oldschool and total overkill, but it works, so hey: ***YOLO baby!***
+* ❌ `<link rel="prerender">`? Not supported in Safari or Firefox, and even Chrome seems to have given up on it.
+* ✅ Stick the URL inside a sandboxed `<iframe>` offscreen? Oldschool and total overkill, but it works, so hey: ***YOLO baby!***
 * ❌ Fetching the HTML and sticking it inside a document.createElement('div')? Unpredictable, unreliable, may execute scripts, won't load relative URLs, the choice of a madman.
 * ❌ Fetching the HTML and sticking it inside a fragment or template instead? Who knows, I'm not gonna try it. You wanna waste your time? Huh? Be my guest.
-* ✅ Fetching and parsing the HTML, finding all the assets and inserting them as <link rel="preload"> tags? Sure, but what assets? Images only? Eager *and* lazy ones? Are you going to check for fetchpriority="high"? What about external CSS and JS? Fonts? Responsive image srcsets? Transitive preload tags? Where does it end? How many milliseconds are you gonna spend plowing that DOM this way and that? By the time you're ready to preload stuff, the user has clicked the link already.
+* ✅ Fetching and parsing the HTML, finding all the assets and inserting them as `<link rel="preload">` tags? Sure, but what assets? Images only? Eager *and* lazy ones? Are you going to check for `fetchpriority="high"`? What about external CSS and JS? Fonts? Responsive image `srcset`s? Transitive preload tags? Where does it end? How many milliseconds are you gonna spend plowing that DOM this way and that? By the time you're ready to preload stuff, the user has clicked the link already.
 
 **Legend:**
 
