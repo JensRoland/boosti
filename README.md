@@ -207,7 +207,7 @@ Just replace `boosti.js` with `yolomode.js` and `fx-yolo` everything you want to
 **Can you put it on a button?** You bet your ass my friend:
 
 ```html
-<button fx-action="/mooooooore" fx-yolo>
+<button fx-action="/boom-baby" fx-yolo>
   When you hit this button it'll already be too late
 </button>
 ```
@@ -225,7 +225,7 @@ It probably won't do anything, *but you can do it* and that's what's so beautifu
 | Attribute        | Description                                                      |
 | ---------------- | ---------------------------------------------------------------- |
 | `fx-yolo`        | Prefetch the URL on hover/touchstart                             |
-| `fx-yolo-images` | That, plus preloads all images in the fetched HTML like a *baws* |
+| `fx-yolo-deep`   | That, plus preloads all assets in the fetched HTML like a *baws* |
 
 ### How It Works
 
@@ -236,18 +236,64 @@ Okay now check this out:
 * **GET only**: Only prefetch GET requests. Don't try and pre-POST something like an asshole. Don't be that guy.
 * **Once**: Each element is only prefetched once. That's the second O in YOLO. It's there for a reason. **This** is that reason.
 
-### Smart Detection
+### Browser Standardization Is A Lie
 
-YOLO mode automatically disables itself when:
+To do this, we need to solve preloading in three distinct scenarios:
 
-* Browser doesn't support `<link rel="prefetch">`. Safari users wanna live in the 90s? Fuck 'em, they're what, one percent of global usage? Fuck 'em. What's that? iOS users? .....Yeah okay that would actually be nice, but uhh, yeah we uhh, we can't preload on mobile Safari yet.
-* Small screen (<450k pixels) AND slow connection (2g) or data saver enabled
+1. Prefetching the target HTML as `fetch` for boosted links
+2. Prefetching the target HTML as `document` for `fx-action`
+3. Prerendering the assets needed by the target page for **maximum YOLO**!
+
+Wouldn't it be nice if there was one way to do all of that, and that way actually worked for once? Yeah, good luck with that. This is where things get messy, so strap in. Or peace out and go kitesurfing with supermodels on Branson's island. I'm not here to tell you what to do. Okay, so here's what you do:
+
+**Prefetching strategies (fetch):**
+
+* ❌ Prefetch via the Speculation Rules API? Supported in Chrome and Edge only, and in practice doesn't even seem to work in Chrome. No idea why, not worth wasting any more time on it.
+* ✅ Prefetch via fetch()? Solid, simple, reliable. Why are we trying these other things again?
+* ❌ <link rel="prefetch">? Doesn't work for boosted links, and it's not supported in Safari.
+* ❌ <link rel="preload" as="fetch">? Ironically prefetches as `document`, not `fetch`, so doesn't work for boosted links.
+
+**Prefetching strategies (document, for fx-action):**
+
+* ❌ Prefetch via the Speculation Rules API? Again, should work, but doesn't.
+* ❌ Prefetch via fetch()? Boosted links only -- *next!*
+* ⚠️ <link rel="prefetch">? Not supported in Safari. Fucking Steve Jobs.
+* ⚠️ <link rel="preload" as="fetch">? Prefetches HTML as document in Chrome, but not sure if all browsers agree; wouldn't bet on it.
+
+**Prerendering assets strategies:**
+
+* ⚠️ Prerender via the Speculation Rules API? Great, simple, does everything (even caches the HTML for *both* `document` *and* `fetch`)... but it's only supported in Chrome and Edge.
+* ❌ <link rel="prerender">? Not supported in Safari or Firefox, and even Chrome seems to have given up on it.
+* ✅ Stick the URL inside a sandboxed <iframe> offscreen? Oldschool and total overkill, but it works, so hey: ***YOLO baby!***
+* ❌ Fetching the HTML and sticking it inside a document.createElement('div')? Unpredictable, unreliable, may execute scripts, won't load relative URLs, the choice of a madman.
+* ❌ Fetching the HTML and sticking it inside a fragment or template instead? Who knows, I'm not gonna try it. You wanna waste your time? Huh? Be my guest.
+* ✅ Fetching and parsing the HTML, finding all the assets and inserting them as <link rel="preload"> tags? Sure, but what assets? Images only? Eager *and* lazy ones? Are you going to check for fetchpriority="high"? What about external CSS and JS? Fonts? Responsive image srcsets? Transitive preload tags? Where does it end? How many milliseconds are you gonna spend plowing that DOM this way and that? By the time you're ready to preload stuff, the user has clicked the link already.
+
+**Legend:**
+
+* ✅ Works well and widely supported. The perfect combination, like radio and the internet.
+* ⚠️ A tease: Works -- but not really.
+* ❌ Doesn't work, stop wasting my time.
+
+So where does that leave YOLO Mode? Here's the deal:
+
+* For `fx-yolo-deep`  :
+  * If the Speculation Rules API is supported, we use that to prerender the page.
+  * Otherwise we create a sandboxed offscreen iframe to prerender the assets; and if it's a boosted link, we slip in an extra `fetch()` to prefetch the HTML as `fetch` since the iframe caches as `document` like an asshole.
+
+* For `fx-yolo`:
+  * For boosted links, we use `fetch()`.
+  * For `fx-action`, we use `<link rel="prefetch">` which works everywhere but Safari, and then we go short some Apple stock because fuck 'em.
+
+### Smart Resouirce Utilization
+
+YOLO Mode automatically disables itself when it detects a small screen (<450k pixels) AND a slow connection (2g) or data saver enabled.
 
 This ensures mobile users on slow connections aren't penalized. *Heh, peeenalized*.
 
 ### Size
 
-Who cares, YOLO Mode does what it wants and doesn't ask for permission. That's the whole point, man. Doesn't matter if it's a megabyte, doesn't matter if it's five. You'll download it and you'll like it because it's fast as shit once it's there.
+Who cares, YOLO Mode does what it wants and doesn't ask for permission. That's the whole point, dude. Doesn't matter if it's a megabyte, doesn't matter if it's five. Look, it's like my Super Sport 300; anyone'll tell you it's too much fucking money and it takes forever to deliver it to you, frankly it's ridiculous, you know it's ridiculous. But that doesn't matter. You'll pay it and you'll wait, and you'll like it because once it gets there it's fast as shit.
 
 ## On The Rhetorical and Artistic Merit of Parody, Sarcasm, and Deliberate Ineloquence
 
