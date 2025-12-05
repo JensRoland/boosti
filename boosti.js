@@ -164,7 +164,40 @@
 	};
 	document.addEventListener("fx:process", (evt)=>process(evt.target));
 
-	// === BOOSTI: Boost (SPA-like navigation) ===
+	// === BOOSTI: Boost (SPA-like navigation) with head merging ===
+	function mergeHead(newHead) {
+		const currentHead = document.head;
+		const newHeadChildren = new Map();
+
+		// Index new head elements by outerHTML
+		for (const child of newHead.children) {
+			newHeadChildren.set(child.outerHTML, child);
+		}
+
+		// Check current head elements
+		const toRemove = [];
+		for (const child of currentHead.children) {
+			const key = child.outerHTML;
+			if (newHeadChildren.has(key)) {
+				// Element exists in both - keep it, remove from "to add" map
+				newHeadChildren.delete(key);
+			} else if (!child.hasAttribute('fx-preserve')) {
+				// Element only in old head and not preserved - mark for removal
+				toRemove.push(child);
+			}
+		}
+
+		// Append new elements first (to avoid FOUC for stylesheets)
+		for (const newChild of newHeadChildren.values()) {
+			currentHead.appendChild(document.createRange().createContextualFragment(newChild.outerHTML));
+		}
+
+		// Then remove old elements
+		for (const child of toRemove) {
+			child.remove();
+		}
+	}
+
 	async function boost(url, options) {
 		try {
 			const resp = await fetch(url, options);
@@ -175,8 +208,11 @@
 			const doc = new DOMParser().parseFromString(html, 'text/html');
 			const swap = () => {
 				document.title = doc.title;
-				document.body.innerHTML = doc.body.innerHTML;
+				mergeHead(doc.head);
+				document.body.replaceWith(doc.body.cloneNode(true));
 				window.scrollTo(0, 0);
+				// Re-process new body for fx-action elements
+				process(document.body);
 			};
 			document.startViewTransition ? await document.startViewTransition(swap).finished : swap();
 			if (!options || options.method === 'GET') {
@@ -216,7 +252,6 @@
 
 	// Handle back/forward
 	window.addEventListener('popstate', () => boost(location.href, { method: 'GET' }));
-
 	// Initialize on DOMContentLoaded
 	document.addEventListener("DOMContentLoaded", ()=>{
 		document.__fixi_mo.observe(document.documentElement, {childList:true, subtree:true});

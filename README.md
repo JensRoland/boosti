@@ -8,7 +8,7 @@ If you aren't familiar with HTMX, fixi.js, or boosted links, you are *likely los
 
 I'll wait.
 
-## API
+## At A Glance
 
 The boosti api consists of eleven HTML attributes, nine events & two properties.
 
@@ -46,13 +46,13 @@ Finally, boosti.js adds several extra attributes and features to the fixi.js API
 
 ![assets/zen-stones.avif](assets/zen-stones.avif)
 
-The current uncompressed size is `7736` bytes, the gzipped size is `2915` bytes and the brotli'd size is `2531` bytes, as determined by:
+The current uncompressed size is `8840` bytes, the gzipped size is `3322` bytes and the brotli'd size is `2890` bytes, as determined by:
 
 ```bash
 ls -l boosti.js | awk  '{print "raw:", $5}'; gzip -k boosti.js; ls -l boosti.js.gz | awk  '{print "gzipped:", $5}'; rm boosti.js.gz; brotli boosti.js; ls -l boosti.js.br | awk  '{print "brotlid:", $5}'; rm boosti.js.br
 ```
 
-Is that a lot? Well, boosti is a replacement for all the core parts of htmx, which as of December 2025 is `51,250` bytes minified, `16,615` bytes gzipped, and `15,003` bytes brotli'd. So in comparison boosti is tiny.
+Is that a lot? Well, boosti is a replacement for all the core parts of [htmx](https://htmx.org/) plus the [head-support extension](https://htmx.org/extensions/head-support/). htmx alone as of December 2025 is `51,250` bytes minified, `16,615` bytes gzipped, and `15,003` bytes brotli'd. So in comparison boosti is tiny.
 
 As its predecessor, boosti has very few moving parts:
 
@@ -70,6 +70,94 @@ The boosti project consists of four files:
 * This [`README.md`](README.md)
 
 [`test.html`](test.html) is a stand-alone HTML file that implements its own visual testing infrastructure, mocking for `fetch()`, etc. and that can be opened using the `file:` protocol for easy testing.
+
+## API
+
+The following table summarizes the boosti API:
+
+<table>
+  <thead>
+    <tr>
+      <th>attribute</th>
+      <th>description</th>
+      <th>example</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>fx-action</code>
+      </td>
+      <td>
+        The URL to which an HTTP request will be issued, required
+      </td>
+      <td>
+        <code>fx-action='/demo'</code>
+      </td>
+    </tr>
+    <tr>
+      <td><code>fx-method</code></td>
+      <td>The HTTP Method that will be used for the request (case-insensitive), defaults to <code>GET</code></td>
+      <td><code>fx-method=&#39;DELETE&#39;</code></td>
+    </tr>
+    <tr>
+      <td><code>fx-target</code></td>
+      <td>A CSS selector specifying where to place the response HTML in the DOM, defaults to the current element</td>
+    <td><code>fx-target=&#39;#a-div&#39;</code></td>
+    </tr>
+    <tr>
+      <td><code>fx-swap</code></td>
+      <td>A string specifying how the content should be swapped into the DOM, can be one of <code>innerHTML</code>, <code>outerHTML</code>, <code>beforebegin</code>, <code>afterbegin</code>, <code>beforeend</code>, <code>afterend</code>, <code>none</code>, or any valid property on the element (e.g. `className` or `value`), defaults to  <code>outerHTML</code></td>
+      <td><code>fx-swap=&#39;innerHTML&#39;</code></td>
+    </tr>
+    <tr>
+      <td>
+        <code>fx-trigger</code>
+      </td>
+      <td>
+        The event that will trigger a request, defaults to <code>submit</code> for <code>form</code> elements, <code>change</code> for <code>input</code>-like elements & <code>click</code> for all other elements. boosti adds support for the special <code>intersect</code> (visible in viewport) trigger as well as the following modifiers: <code>delay:Nms</code>, <code>throttle:Nms</code>, <code>changed</code>, <code>once</code>, and <code>threshold:N</code>.
+      </td>
+      <td>
+        <code>fx-trigger=&#39;click&#39;</code>
+      </td>
+    </tr>
+    <tr>
+      <td><code>fx-ignore</code></td>
+      <td>Any element with this attribute on it or on an ancestor will not be processed for <code>fx-*</code> attributes</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td><code>fx-indicator</code></td>
+      <td>CSS selector for an element to show during requests (adds/removes <code>fx-request</code> class)</td>
+      <td><code>fx-indicator=&#39;#spinner&#39;</code></td>
+    </tr>
+    <tr>
+      <td><code>fx-confirm</code></td>
+      <td>When present on an element, will cause a confirmation dialog to be shown before the request is issued</td>
+      <td><code>fx-confirm=&#39;Are you sure?&#39;</code></td>
+    </tr>
+    <tr>
+      <td><code>fx-reset</code></td>
+      <td>When present on a form element, will cause the form to be reset after a successful request</td>
+      <td><code>fx-reset</code></td>
+    </tr>
+    <tr>
+      <td><code>fx-boost</code></td>
+      <td>Enable/disable boosting on this element and its children (default: <code>true</code>)</td>
+      <td><code>fx-boost=&#39;false&#39;</code></td>
+    </tr>
+    <tr>
+      <td><code>fx-yolo</code> <strong>[yolomode.js&nbsp;only]</strong></td>
+      <td>Set on a link or <code>fx-action</code> element to automatically prefetch the target HTML on hover/touchstart (same-origin <code>GET</code> requests only)</td>
+      <td><code>fx-yolo</code></td>
+    </tr>
+    <tr>
+      <td><code>fx-yolo-deep</code> <strong>[yolomode.js&nbsp;only]</strong></td>
+      <td>Same as <code>fx-yolo</code>, plus preloads all assets in the fetched HTML</td>
+      <td><code>fx-yolo-deep</code></td>
+    </tr>
+  </tbody>
+</table>
 
 ## Examples
 
@@ -109,7 +197,15 @@ The [delete row example](https://htmx.org/examples/delete-row/) from htmx can be
 
 ### Lazy Loading
 
-The htmx [lazy loading](https://htmx.org/examples/lazy-load/) example can be ported to boosti using the `intersect` trigger:
+The htmx [lazy loading](https://htmx.org/examples/lazy-load/) example can be ported to boosti using the `fx:initer` event:
+
+```html
+<div fx-action="/lazy-content" fx-trigger="fx:inited">
+  Content Loading...
+</div>
+```
+
+Or you can make it trigger on scroll by using the `intersect` trigger:
 
 ```html
 <div fx-action="/lazy-content" fx-trigger="intersect once">
@@ -182,6 +278,22 @@ Use `fx-indicator` to show a loading state during requests:
 
 The `fx-request` class is added to the indicator element when a request starts and removed when it completes (or errors).
 
+## Alternatives
+
+The idea of a declarative AJAX library isn't new, and there are several mature alternatives to boosti.js worthy of your consideration:
+
+| Library                                           | Compared to boosti.js, by footprint                                                                                            |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| [fixi.js](https://github.com/bigskysoftware/fixi) | Smaller, just the core features, see "Differences From fixi.js" above                                                          |
+| [ZJAX](https://www.zjax.dev/)                     | Elegant syntax with an intuitive DSL; no boosted links, but full JS support, about twice the size (4.6 KB gzipped)             |
+| [Datastar](https://data-star.dev/)                | Adds features for SSE and highly interactive sites/games, clever backend integration; impressive demos; bigger (12 KB gzipped) |
+| [htmx](https://htmx.org/)                         | More features, modular, powerful, but bigger (17 KB gzipped)                                                                   |
+| [Hotwire Turbo](https://hotwired.dev/)            | Rails-focused, 'frame' oriented, more features, and much bigger (26 KB gzipped). Ideal for Rails                               |
+| [LiveWire](https://livewire.laravel.com/)         | Laravel-focused, you write components in PHP, robust and very powerful. Ideal for Laravel, very big.                           |
+| [Unpoly](https://unpoly.com/)                     | Tons of features, basically a full framework, but positively huge (59 KB gzipped)                                              |
+
+All of these have their places, and if you need their extra features or framework integrations, you should use them. But if what you want is a usable htmx replacement which makes your site feel snappy like an SPA, but you also want to stay as lean as possible, boosti.js is your friend.
+
 ## YOLO Mode: Speculative Preloading
 
 ![assets/boosti-yolomode.avif](assets/boosti-yolomode.avif)
@@ -190,9 +302,22 @@ The `fx-request` class is added to the indicator element when a request starts a
 
 If you like reckless speeds and don't care about wimpy minimalism, `yolomode.js` is for you. YOLO Mode includes everything in boosti.js plus speculative preloading inspired by [instant.page](https://instant.page/) and toxic masculinity. What that means is it **prefetches URLs when users merely hover over links**, gaining precious milliseconds so that subsequent clicks feel instant.
 
+### Toxic Masculinity? How? What?
+
+Speculative preloading is the toxic masculinity of software, and YOLO Mode is true Toxic-Masculinity-as-a-Service (TMaaS, or *'Team-Ass'*) in that:
+
+* It goes full on in less than 100 milliseconds without waiting for consent
+* It's overly sensitive and loads prematurely a lot
+* It triggers things it shouldn't a lot of the time
+* It's all `GET GET GET` all the time, never `CONNECT` or `PUT` or `POST` or `HEAD`
+* It probably misinterprets the signal entirely about 50% of the time, and won't find out until it's too late
+* If it spent just *200 milliseconds longer* it could easily get that consent.... **and it won't**.
+
+Some might call these weaknesses or flaws (or felonies), and they'd be right, but YOLO Mode is no quitter. YOLO Mode leans in. YOLO Mode is probably going to jail.
+
 ### Usage
 
-Just replace `boosti.js` with `yolomode.js` and `fx-yolo` everything you want to go faster than a cheeetah on rocket skates.
+Just drop `yolomode.js` on your page and `fx-yolo` everything you want to go faster than a cheeetah on rocket skates. You can run it standalone if you want, but if you use it together with `boosti.js` it'll detect boosted links and handle them correctly.
 
 ![assets/cheetah-on-rocket-skates.avif](assets/cheetah-on-rocket-skates.avif)
 
@@ -222,29 +347,43 @@ It probably won't do anything, *but you can do it* and that's what's so beautifu
 
 ### Attributes
 
-| Attribute        | Description                                                      |
-| ---------------- | ---------------------------------------------------------------- |
-| `fx-yolo`        | Prefetch the URL on hover/touchstart                             |
-| `fx-yolo-deep`   | That, plus preloads all assets in the fetched HTML like a *baws* |
+| Attribute      | Description                                                      |
+| -------------- | ---------------------------------------------------------------- |
+| `fx-yolo`      | Prefetch the URL on hover/touchstart                             |
+| `fx-yolo-deep` | That, plus preloads all assets in the fetched HTML like a *baws* |
 
 ### How It Works
 
 Okay now check this out:
 
-* **Hover**: Waits 65ms before prefetching so the load doesn't blow prematurely from simply users waving their thing around the screen. You wanna be fast, but not *too* fast, you know what I mean. Yeeeah you do. This guy *fucks*.
-* **Touch screens**: Prefetches immediately on touchstart, like a loser. But that's a good thing though. Phones are slow as fuck, we just gotta get in there as fast as possible. No judgment.
+* **Hover**: Waits 65ms before prefetching so the load doesn't blow prematurely from simply users waving their thing around the screen. You wanna be fast, but not *too* fast, you know what I mean. Yeeeah you do.
+* **Touch screens**: Prefetches immediately on `touchstart`, like a loser. But that's a good thing though. Phones are slow as fuck, we just gotta get in there as fast as possible. Also no judgment.
 * **GET only**: Only prefetch GET requests. Don't try and pre-POST something like an asshole. Don't be that guy.
 * **Once**: Each element is only prefetched once. That's the second O in YOLO. It's there for a reason. **This** is that reason.
 
+### A Note About Cache Headers
+
+As awesome as YOLO Mode is, it's still relying on the browser's prefetch cache, which will only **cache responses if the cache headers allow it**. So you'll need to configure your server to return cache headers for any assets you want to YOLO, including dynamically-generated HTML responses.
+
+Now, you want to cache HTML in the user's browser, but you don't want it cached in some public transparent proxy that's going to serve that to the next guy that comes along. I call them slutty caches, and usually they're the best, I mean holy shit, love 'em, but here - uh-uh, you don't want that.
+
+So here's how you *do it right*:
+
+```ini
+Cache-Control: private, max-age=5
+```
+
+Set that on your HTML responses and it'll cache them for five seconds, just long enough for that next click, and only in that one user's browser. Private. Secure. Intimate. Everything stays between you and that server you met online.
+
 ### Browser Standardization Is A Lie
 
-To do this, we need to solve preloading in three distinct scenarios:
+To do any kind of YOLOing, we first have to figure out how to do preloading in three distinct cases:
 
 1. Prefetching the target HTML as `fetch` for boosted links
 2. Prefetching the target HTML as `document` for `fx-action`
 3. Prerendering the assets needed by the target page for **maximum YOLO**!
 
-Wouldn't it be nice if there was one way to do all of that, and that way actually worked for once? Yeah, good luck with that. This is where things get messy, so strap in. Or peace out and go kitesurfing with supermodels on Branson's island. I'm not here to tell you what to do. Okay, so here's what you do:
+Wouldn't it be nice if there was one way to do all of that, and that way actually worked for once? Yeah, good luck with that. This is where things get messy, so strap in. Or peace out and go kitesurfing with supermodels on Branson's island. I'm not here to tell you what to do. Okay, so here's what you gotta do:
 
 **Prefetching strategies (fetch):**
 
@@ -293,7 +432,9 @@ This ensures mobile users on slow connections aren't penalized. *Heh, peeenalize
 
 ### Size
 
-Who cares, YOLO Mode does what it wants and doesn't ask for permission. That's the whole point, dude. Doesn't matter if it's a megabyte, doesn't matter if it's five. Look, it's like my Super Sport 300; anyone'll tell you it's too much fucking money and it takes forever to deliver it to you, frankly it's ridiculous, you know it's ridiculous. But that doesn't matter. You'll pay it and you'll wait, and you'll like it because once it gets there it's fast as shit.
+Who cares, YOLO Mode does what it wants and doesn't ask for permission. That's the whole point, dude. Doesn't matter if it's a megabyte, doesn't matter if it's five. Why is it always about size? Look, it's like my Super Sport 300; anyone'll tell you it's too much fucking money and then they take like a year to deliver it to you, frankly it's ridiculous, you know it's ridiculous. But that doesn't matter. You'll pay it and you'll wait, and you'll like it, because once it gets there it's fast as shit.
+
+And for what it's worth, `yolomode.js` is about half the size of [instant.page](https://instant.page/), is that good enough for ya? It would be even smaller if we could use middle-out compression, but my guys keep saying that's all '*proprietary*' and '*fictional*'. Can you believe that? I didn't ask for excuses, I asked for solutions!
 
 ## On The Rhetorical and Artistic Merit of Parody, Sarcasm, and Deliberate Ineloquence
 
